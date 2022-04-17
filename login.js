@@ -16,6 +16,7 @@ export default async function () {
     });
     if (data.token) {
       setCookie("jwt", data.token, 3);
+      setCookie("user", data.data.user.role, 3);
       location.reload();
     }
   });

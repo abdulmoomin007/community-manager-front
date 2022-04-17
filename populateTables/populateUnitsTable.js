@@ -1,0 +1,58 @@
+import { baseURL } from "../config.js";
+import { getCookie } from "../utils/cookieUtils.js";
+import deleteAuth from "../utils/deleteAuth.js";
+import { postAuth } from "../utils/postAuth.js";
+
+export default function (tableContainer, data, units) {
+  populateDom(tableContainer, data);
+  document
+    .querySelector("#unitsTable")
+    .addEventListener("click", async (event) => {
+      if (event.target.id == "deleteBtn") {
+        const removeId = event.target.parentNode.parentNode.id;
+        await deleteAuth(
+          `${baseURL}/api/v1/units/${removeId}`,
+          getCookie("jwt")
+        );
+        data.splice(
+          data.findIndex((el) => el.id == removeId),
+          1
+        );
+        populate(data);
+      } else if (event.target.id == "addBtn") {
+        console.log("Add");
+        const name = document.querySelector("#unitName").value;
+        const res = await postAuth(
+          `${baseURL}/api/v1/units`,
+          { name },
+          getCookie("jwt")
+        );
+        data.push(res.data);
+        populate(data);
+      }
+    });
+}
+
+function populate(data) {
+  let dom = `<tr>
+    <th>Name</th>
+    </tr>`;
+  data.forEach((row) => {
+    dom += `<tr id="${row.id}">
+            <td>${row.name}</td>
+            <td><button id='deleteBtn'>delete</button></td>
+            </tr>`;
+  });
+  dom += `<tr id="unitId">
+  <td><input type="text" id="unitName"></td>
+  <td><button id="addBtn">Add</button></td>
+  </tr>`;
+  document.querySelector("tbody").innerHTML = dom;
+}
+
+function populateDom(tableContainer, data) {
+  let tableDOM = `<table id="unitsTable"><tbody>`;
+  tableDOM += `</tbody></table>`;
+  tableContainer.innerHTML = tableDOM;
+  populate(data);
+}
