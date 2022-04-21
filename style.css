@@ -13,7 +13,7 @@ html {
 }
 
 body {
-    background-color: aliceblue;
+    background-color: #FDF6EC;
 }
 
 .header {
@@ -52,7 +52,7 @@ main.main {
     min-height: 55rem;
     max-height: 55rem;
     min-width: 100%;
-    overflow-y: scroll;
+    overflow: scroll;
 }
 
 form {
