@@ -9,6 +9,7 @@ html {
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
     margin: 0 5%;
     height: 100%;
+    color: #46244C;
 }
 
 body {
@@ -27,7 +28,7 @@ body {
 }
 
 .header .logout {
-    background-color:cadetblue;
+    background-color: #E5EFC1;
     cursor: pointer;
     border-radius: 3px;
     padding: 1rem 2rem;
@@ -35,12 +36,23 @@ body {
 }
 
 main.main {
-    display: grid;
-    grid-template-columns: 1fr 3fr;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* grid-template-columns: 1fr 4fr; */
     min-height: 55rem;
     max-height: 55rem;
     border: 1px solid #ccc;
-    /* overflow: scroll; */
+}
+
+.page {
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+    /* justify-content: space-around; */
+    min-height: 55rem;
+    max-height: 55rem;
+    min-width: 100%;
+    overflow-y: scroll;
 }
 
 form {

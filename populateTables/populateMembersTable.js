@@ -5,100 +5,18 @@ import { patchAuth } from "../utils/patchAuth.js";
 import { postAuth } from "../utils/postAuth.js";
 
 export default function (tableContainer, data, units) {
-  populateDom(tableContainer, data, units);
+  let tableDOM = `<table id="membersTable"><tbody></tbody></table>`;
+  tableContainer.innerHTML = tableDOM;
+  populate(data, units);
   document
     .querySelector("#membersTable")
     .addEventListener("click", async (event) => {
-      if (event.target.id == "deleteBtn") {
-        const removeId = event.target.parentNode.parentNode.id;
-        await deleteAuth(
-          `${baseURL}/api/v1/members/${removeId}`,
-          getCookie("jwt")
-        );
-        data.splice(
-          data.findIndex((el) => el.id == removeId),
-          1
-        );
-        populate(data, units);
-        // document.querySelector("#" + removeId).remove();
-      } else if (event.target.id == "editBtn") {
-        console.log("Edit");
-        const row = event.target.parentNode.parentNode;
-        const rowId = row.id;
-        const rowData = data.find((el) => el.id == rowId);
-        console.log(row, rowId, rowData);
-        const innerDOM = `<tr>
-        <td><input type="text" id="memberId" value="${rowData.memberId}"></td>
-        <td><input type="text" id="memberName" value="${rowData.name}"></td>
-        <td><select id="memberGender"><option value="male" ${
-          rowData.gender == "male" ? "selected" : ""
-        }>Male</option><option value="female" ${
-          rowData.gender == "female" ? "selected" : ""
-        }>Female</option><option value="others" ${
-          rowData.gender == "others" ? "selected" : ""
-        }>Others</option><select></td>
-        <td><input type="date" id="memberDOB" value="${rowData.dob}"></td>
-        <td><input type="date" id="memberDOJ" value="${rowData.doj}"></td>
-        <td><select id="memberUnit">${units
-          .map(
-            (unit) =>
-              "<option id='" +
-              unit.id +
-              "' value='" +
-              unit.id +
-              "' " +
-              (rowData.unitId == unit.id ? "selected" : "") +
-              ">" +
-              unit.name +
-              "</option>"
-          )
-          .join()}</select></td>
-        <td><button id='updateBtn'>Update</button><button id='cancelBtn'>Cancel</button></td>
-        </tr>`;
-        row.innerHTML = innerDOM;
-        document
-          .querySelector("#updateBtn")
-          .addEventListener("click", async (ev) => {
-            ev.preventDefault();
-            const currentRow = ev.target.parentNode.parentNode;
-            const memberId = currentRow.querySelector("#memberId").value;
-            const name = currentRow.querySelector("#memberName").value;
-            const gender = currentRow.querySelector("#memberGender").value;
-            const dob = currentRow.querySelector("#memberDOB").value;
-            const doj = currentRow.querySelector("#memberDOJ").value;
-            const unitId = currentRow.querySelector("#memberUnit").value;
-            const res = await patchAuth(
-              `${baseURL}/api/v1/members/${currentRow.id}`,
-              { memberId, name, gender, dob, doj, unitId },
-              getCookie("jwt")
-            );
-            const index = data.findIndex((el) => el.id == res.data.id);
-            data[index] = res.data;
-            populate(data, units);
-          });
-        document
-          .querySelector("#cancelBtn")
-          .addEventListener("click", async (ev) => {
-            populate(data, units);
-          });
-      } else if (event.target.id == "addBtn") {
-        console.log("Add");
-        const memberId = document.querySelector("#memberId").value;
-        const name = document.querySelector("#memberName").value;
-        const gender = document.querySelector("#memberGender").value;
-        const dob = document.querySelector("#memberDOB").value;
-        const doj = document.querySelector("#memberDOJ").value;
-        const unitId = document.querySelector("#memberUnit").value;
-        // console.log({ memberId, name, gender, dob, doj, unitId });
-        const res = await postAuth(
-          `${baseURL}/api/v1/members`,
-          { memberId, name, gender, dob, doj, unitId },
-          getCookie("jwt")
-        );
-        // console.log(res);
-        data.push(res.data);
-        populate(data, units);
-      }
+      if (event.target.id == "deleteBtn") deleteBtnHandler(event, data, units);
+      else if (event.target.id == "editBtn") editBtnHandler(event, data, units);
+      else if (event.target.id == "addBtn") addBtnHandler(event, data, units);
+      else if (event.target.id == "updateBtn")
+        updateBtnHandler(event, data, units);
+      else if (event.target.id == "cancelBtn") populate(data, units);
     });
 }
 
@@ -142,12 +60,86 @@ function populate(data, units) {
   <td><button id='addBtn'>Add</button></td>
   </tr>`;
   document.querySelector("tbody").innerHTML = dom;
-  // populateDom(tableContainer, data, units);
 }
 
-function populateDom(tableContainer, data, units) {
-  let tableDOM = `<table id="membersTable"><tbody>`;
-  tableDOM += `</tbody></table>`;
-  tableContainer.innerHTML = tableDOM;
+async function addBtnHandler(event, data, units) {
+  console.log("Add");
+  const memberId = document.querySelector("#memberId").value;
+  const name = document.querySelector("#memberName").value;
+  const gender = document.querySelector("#memberGender").value;
+  const dob = document.querySelector("#memberDOB").value;
+  const doj = document.querySelector("#memberDOJ").value;
+  const unitId = document.querySelector("#memberUnit").value;
+  const res = await postAuth(
+    `${baseURL}/api/v1/members`,
+    { memberId, name, gender, dob, doj, unitId },
+    getCookie("jwt")
+  );
+  data.push(res.data);
+  populate(data, units);
+}
+
+async function deleteBtnHandler(event, data, units) {
+  const removeId = event.target.parentNode.parentNode.id;
+  await deleteAuth(`${baseURL}/api/v1/members/${removeId}`, getCookie("jwt"));
+  data.splice(
+    data.findIndex((el) => el.id == removeId),
+    1
+  );
+  populate(data, units);
+}
+
+async function editBtnHandler(event, data, units) {
+  console.log("Edit");
+  const row = event.target.parentNode.parentNode;
+  const rowId = row.id;
+  const rowData = data.find((el) => el.id == rowId);
+  console.log(row, rowId, rowData);
+  const innerDOM = `<tr>
+  <td><input type="text" id="memberId" value="${rowData.memberId}"></td>
+  <td><input type="text" id="memberName" value="${rowData.name}"></td>
+  <td><select id="memberGender"><option value="male" ${
+    rowData.gender == "male" ? "selected" : ""
+  }>Male</option><option value="female" ${
+    rowData.gender == "female" ? "selected" : ""
+  }>Female</option><option value="others" ${
+    rowData.gender == "others" ? "selected" : ""
+  }>Others</option><select></td>
+  <td><input type="date" id="memberDOB" value="${rowData.dob}"></td>
+  <td><input type="date" id="memberDOJ" value="${rowData.doj}"></td>
+  <td><select id="memberUnit">${units
+    .map(
+      (unit) =>
+        "<option id='" +
+        unit.id +
+        "' value='" +
+        unit.id +
+        "' " +
+        (rowData.unitId == unit.id ? "selected" : "") +
+        ">" +
+        unit.name +
+        "</option>"
+    )
+    .join()}</select></td>
+  <td><button id='updateBtn'>Update</button><button id='cancelBtn'>Cancel</button></td>
+  </tr>`;
+  row.innerHTML = innerDOM;
+}
+
+async function updateBtnHandler(event, data, units) {
+  const currentRow = event.target.parentNode.parentNode;
+  const memberId = currentRow.querySelector("#memberId").value;
+  const name = currentRow.querySelector("#memberName").value;
+  const gender = currentRow.querySelector("#memberGender").value;
+  const dob = currentRow.querySelector("#memberDOB").value;
+  const doj = currentRow.querySelector("#memberDOJ").value;
+  const unitId = currentRow.querySelector("#memberUnit").value;
+  const res = await patchAuth(
+    `${baseURL}/api/v1/members/${currentRow.id}`,
+    { memberId, name, gender, dob, doj, unitId },
+    getCookie("jwt")
+  );
+  const index = data.findIndex((el) => el.id == res.data.id);
+  data[index] = res.data;
   populate(data, units);
 }
